@@ -38,6 +38,46 @@
                     @Html.ValidationMessageFor(model => model.NumberOfNewProductOnHomepage)
                 </td>
             </tr>
+            <tr>
+                <td class="adminTitle">
+
+                    @Html.NopLabelFor(model => model.ShowBestSellerProduct):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.ShowBestSellerProduct)
+                    @Html.ValidationMessageFor(model => model.ShowBestSellerProduct)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+
+                    @Html.NopLabelFor(model => model.ShowNewProduct):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.ShowNewProduct)
+                    @Html.ValidationMessageFor(model => model.ShowNewProduct)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+
+                    @Html.NopLabelFor(model => model.ShowHomePageProduct):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.ShowHomePageProduct)
+                    @Html.ValidationMessageFor(model => model.ShowHomePageProduct)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+
+                    @Html.NopLabelFor(model => model.CacheTime):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.CacheTime)
+                    @Html.ValidationMessageFor(model => model.CacheTime)
+                </td>
+            </tr>
         </table>
     </fieldset>
     <br />

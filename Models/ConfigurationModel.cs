@@ -33,6 +33,6 @@ namespace Nop.Plugin.Widgets.TypeProducts.Models
         public bool ShowHomePageProduct { get; set; }
         [NopResourceDisplayName("Plugins.Widgets.TypeProducts.CacheTime")]
         [AllowHtml]
-        public int cacheTime { get; set; }
+        public int CacheTime { get; set; }
     }
 }

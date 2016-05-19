@@ -18,6 +18,6 @@ namespace Nop.Plugin.Widgets.TypeProducts
 
         public bool ShowHomePageProduct { get; set; }
 
-        public int cacheTime { get; set; }
+        public int CacheTime { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Nop.Plugin.Widgets.TypeProducts.Models
     {
         public HomePageProductInitModel()
         {
-            HomePageProduct= BestSellerProduct=NewProduct= new List<ProductOverviewModel>();
+            HomePageProduct = BestSellerProduct = NewProduct = new List<ProductOverviewModel>();
         }
         public IList<ProductOverviewModel> HomePageProduct { get; set; }
         public IList<ProductOverviewModel> BestSellerProduct { get; set; }
@@ -20,5 +20,6 @@ namespace Nop.Plugin.Widgets.TypeProducts.Models
         public int HomePageProductPageCount { get; set; }
         public int BestSellerProductPageCount { get; set; }
         public int NewProductProductPageCount { get; set; }
+
     }
 }
