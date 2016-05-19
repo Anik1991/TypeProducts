@@ -5,6 +5,7 @@ using Nop.Core.Configuration;
 using Nop.Core.Infrastructure;
 using Nop.Core.Infrastructure.DependencyManagement;
 using Nop.Plugin.Widgets.TypeProducts.Controllers;
+using Nop.Plugin.Widgets.TypeProducts.Service;
 
 namespace Nop.Plugin.Widgets.TypeProducts.Infrastructure
 {
@@ -24,6 +25,7 @@ namespace Nop.Plugin.Widgets.TypeProducts.Infrastructure
             //we cache presentation models between requests
             builder.RegisterType<TypeProductsController>()
                 .WithParameter(ResolvedParameter.ForNamed<ICacheManager>("nop_cache_static"));
+            builder.RegisterType<TypePluginProductService>().As<ITypePluginProductService>().InstancePerLifetimeScope();
         }
 
         /// <summary>

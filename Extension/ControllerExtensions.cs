@@ -15,15 +15,17 @@ using Nop.Services.Media;
 using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Tax;
-using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Catalog;
 using Nop.Web.Models.Media;
+using Nop.Web.Infrastructure.Cache;
 
-namespace Nop.Web.Extensions
+namespace Nop.Plugin.Widgets.TypeProducts.Extension
 {
     //here we have some methods shared between controllers
     public static class ControllerExtensions
     {
+
+
         public static IList<ProductSpecificationModel> PrepareProductSpecificationModel(this Controller controller,
             IWorkContext workContext,
             ISpecificationAttributeService specificationAttributeService,
@@ -348,7 +350,7 @@ namespace Nop.Web.Extensions
                         pictureModel.AlternateText = (picture != null && !string.IsNullOrEmpty(picture.AltAttribute)) ?
                             picture.AltAttribute :
                             string.Format(localizationService.GetResource("Media.Product.ImageAlternateTextFormat"), model.Name);
-                        
+
                         return pictureModel;
                     });
 

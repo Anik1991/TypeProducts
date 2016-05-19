@@ -45,7 +45,7 @@ namespace Nop.Plugin.Widgets.TypeProducts
         public void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues)
         {
             actionName = "Configure";
-            controllerName = "WidgetsNivoSlider";
+            controllerName = "TypeProducts";
             routeValues = new RouteValueDictionary { { "Namespaces", "Nop.Plugin.Widgets.TypeProducts.Controllers" }, { "area", null } };
         }
 
@@ -59,7 +59,7 @@ namespace Nop.Plugin.Widgets.TypeProducts
         public void GetDisplayWidgetRoute(string widgetZone, out string actionName, out string controllerName, out RouteValueDictionary routeValues)
         {
             actionName = "PublicInfo";
-            controllerName = "WidgetsNivoSlider";
+            controllerName = "TypeProducts";
             routeValues = new RouteValueDictionary
             {
                 {"Namespaces", "Nop.Plugin.Widgets.TypeProducts.Controllers"},
@@ -80,15 +80,9 @@ namespace Nop.Plugin.Widgets.TypeProducts
             //settings
             var settings = new TypeProductsSettings
             {
-                Picture1Id = _pictureService.InsertPicture(File.ReadAllBytes(sampleImagesPath + "banner1.jpg"), "image/pjpeg", "banner_1").Id,
-                Text1 = "",
-                Link1 = _webHelper.GetStoreLocation(false),
-                Picture2Id = _pictureService.InsertPicture(File.ReadAllBytes(sampleImagesPath + "banner2.jpg"), "image/pjpeg", "banner_2").Id,
-                Text2 = "",
-                Link2 = _webHelper.GetStoreLocation(false),
-                //Picture3Id = _pictureService.InsertPicture(File.ReadAllBytes(sampleImagesPath + "banner3.jpg"), "image/pjpeg", "banner_3").Id,
-                //Text3 = "",
-                //Link3 = _webHelper.GetStoreLocation(false),
+                NumberOfBestsellersOnHomepage = 4,
+                NumberOfHomePageProductOnHomepage = 4,
+                NumberOfNewProductOnHomepage = 4
             };
             _settingService.SaveSetting(settings);
 

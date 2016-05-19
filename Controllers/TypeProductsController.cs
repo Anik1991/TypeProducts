@@ -1,13 +1,27 @@
-﻿using System.Web.Mvc;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Web.Mvc;
 using Nop.Core;
 using Nop.Core.Caching;
+using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Media;
+using Nop.Plugin.Widgets.TypeProducts;
+using Nop.Plugin.Widgets.TypeProducts.Extension;
 using Nop.Plugin.Widgets.TypeProducts.Infrastructure.Cache;
+using Nop.Plugin.Widgets.TypeProducts.Model;
 using Nop.Plugin.Widgets.TypeProducts.Models;
+using Nop.Plugin.Widgets.TypeProducts.Service;
+using Nop.Services.Catalog;
 using Nop.Services.Configuration;
+using Nop.Services.Directory;
 using Nop.Services.Localization;
 using Nop.Services.Media;
+using Nop.Services.Orders;
+using Nop.Services.Security;
 using Nop.Services.Stores;
+using Nop.Services.Tax;
 using Nop.Web.Framework.Controllers;
+using Nop.Web.Models.Catalog;
 
 namespace Nop.Plugin.Widgets.TypeProducts.Controllers
 {
@@ -20,14 +34,44 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
         private readonly ISettingService _settingService;
         private readonly ICacheManager _cacheManager;
         private readonly ILocalizationService _localizationService;
+        private readonly ICategoryService _categoryService;
+        private readonly IProductService _productService;
+        private readonly ISpecificationAttributeService _specificationAttributeService;
+        private readonly IPriceCalculationService _priceCalculationService;
+        private readonly IPriceFormatter _priceFormatter;
+        private readonly IPermissionService _permissionService;
+        private readonly ITaxService _taxService;
+        private readonly ICurrencyService _currencyService;
+        private readonly IWebHelper _webHelper;
+        private readonly CatalogSettings _catalogSettings;
+        private readonly MediaSettings _mediaSettings;
+        private readonly IOrderReportService _orderReportService;
+        private readonly IAclService _aclService;
+        private readonly IStoreMappingService _storeMappingService;
+        private readonly ITypePluginProductService _typePluginProductService;
 
         public TypeProductsController(IWorkContext workContext,
             IStoreContext storeContext,
-            IStoreService storeService, 
+            IStoreService storeService,
             IPictureService pictureService,
             ISettingService settingService,
             ICacheManager cacheManager,
-            ILocalizationService localizationService)
+            ILocalizationService localizationService,
+            ICategoryService categoryService,
+            IProductService productService,
+            ISpecificationAttributeService specificationAttributeService,
+            IPriceCalculationService priceCalculationService,
+            IPriceFormatter priceFormatter,
+            IPermissionService permissionService,
+            ITaxService taxService,
+            ICurrencyService currencyService,
+            IWebHelper webHelper,
+            CatalogSettings catalogSettings,
+            MediaSettings mediaSettings,
+            IOrderReportService orderReportService,
+            IAclService aclService,
+            IStoreMappingService storeMappingService,
+            ITypePluginProductService typePluginProductService)
         {
             this._workContext = workContext;
             this._storeContext = storeContext;
@@ -36,66 +80,59 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
             this._settingService = settingService;
             this._cacheManager = cacheManager;
             this._localizationService = localizationService;
+            this._categoryService = categoryService;
+            this._productService = productService;
+            this._categoryService = categoryService;
+            this._specificationAttributeService = specificationAttributeService;
+            this._priceCalculationService = priceCalculationService;
+            this._priceFormatter = priceFormatter;
+            this._permissionService = permissionService;
+            this._taxService = taxService;
+            this._currencyService = currencyService;
+            this._webHelper = webHelper;
+            this._catalogSettings = catalogSettings;
+            this._mediaSettings = mediaSettings;
+            this._orderReportService = orderReportService;
+            this._aclService = aclService;
+            this._storeMappingService = storeMappingService;
+            this._typePluginProductService = typePluginProductService;
         }
 
-        protected string GetPictureUrl(int pictureId)
+        #region Utility
+        [NonAction]
+        protected virtual IEnumerable<ProductOverviewModel> PrepareProductOverviewModels(IEnumerable<Product> products,
+            bool preparePriceModel = true, bool preparePictureModel = true,
+            int? productThumbPictureSize = null, bool prepareSpecificationAttributes = false,
+            bool forceRedirectionAfterAddingToCart = false)
         {
-            string cacheKey = string.Format(ModelCacheEventConsumer.PICTURE_URL_MODEL_KEY, pictureId);
-            return _cacheManager.Get(cacheKey, () =>
-            {
-                var url = _pictureService.GetPictureUrl(pictureId, showDefaultPicture: false);
-                //little hack here. nulls aren't cacheable so set it to ""
-                if (url == null)
-                    url = "";
-
-                return url;
-            });
+            return this.PrepareProductOverviewModels(_workContext,
+                _storeContext, _categoryService, _productService, _specificationAttributeService,
+                _priceCalculationService, _priceFormatter, _permissionService,
+                _localizationService, _taxService, _currencyService,
+                _pictureService, _webHelper, _cacheManager,
+                _catalogSettings, _mediaSettings, products,
+                preparePriceModel, preparePictureModel,
+                productThumbPictureSize, prepareSpecificationAttributes,
+                forceRedirectionAfterAddingToCart);
         }
 
+        protected virtual TypeProductsSettings GetTypeProductsSettings()
+        {
+            var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
+            return _settingService.LoadSetting<TypeProductsSettings>(storeScope);
+        }
+        #endregion
         [AdminAuthorize]
         [ChildActionOnly]
         public ActionResult Configure()
         {
             //load settings for a chosen store scope
-            var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
-            var nivoSliderSettings = _settingService.LoadSetting<TypeProductsSettings>(storeScope);
+            var settings = GetTypeProductsSettings();
             var model = new ConfigurationModel();
-            model.Picture1Id = nivoSliderSettings.Picture1Id;
-            model.Text1 = nivoSliderSettings.Text1;
-            model.Link1 = nivoSliderSettings.Link1;
-            model.Picture2Id = nivoSliderSettings.Picture2Id;
-            model.Text2 = nivoSliderSettings.Text2;
-            model.Link2 = nivoSliderSettings.Link2;
-            model.Picture3Id = nivoSliderSettings.Picture3Id;
-            model.Text3 = nivoSliderSettings.Text3;
-            model.Link3 = nivoSliderSettings.Link3;
-            model.Picture4Id = nivoSliderSettings.Picture4Id;
-            model.Text4 = nivoSliderSettings.Text4;
-            model.Link4 = nivoSliderSettings.Link4;
-            model.Picture5Id = nivoSliderSettings.Picture5Id;
-            model.Text5 = nivoSliderSettings.Text5;
-            model.Link5 = nivoSliderSettings.Link5;
-            model.ActiveStoreScopeConfiguration = storeScope;
-            if (storeScope > 0)
-            {
-                model.Picture1Id_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Picture1Id, storeScope);
-                model.Text1_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Text1, storeScope);
-                model.Link1_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Link1, storeScope);
-                model.Picture2Id_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Picture2Id, storeScope);
-                model.Text2_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Text2, storeScope);
-                model.Link2_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Link2, storeScope);
-                model.Picture3Id_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Picture3Id, storeScope);
-                model.Text3_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Text3, storeScope);
-                model.Link3_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Link3, storeScope);
-                model.Picture4Id_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Picture4Id, storeScope);
-                model.Text4_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Text4, storeScope);
-                model.Link4_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Link4, storeScope);
-                model.Picture5Id_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Picture5Id, storeScope);
-                model.Text5_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Text5, storeScope);
-                model.Link5_OverrideForStore = _settingService.SettingExists(nivoSliderSettings, x => x.Link5, storeScope);
-            }
-
-            return View("~/Plugins/Widgets.TypeProducts/Views/WidgetsNivoSlider/Configure.cshtml", model);
+            model.NumberOfBestsellersOnHomepage = settings.NumberOfBestsellersOnHomepage;
+            model.NumberOfHomePageProductOnHomepage = settings.NumberOfHomePageProductOnHomepage;
+            model.NumberOfNewProductOnHomepage = settings.NumberOfNewProductOnHomepage;
+            return View("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/Configure.cshtml", model);
         }
 
         [HttpPost]
@@ -103,103 +140,18 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
         [ChildActionOnly]
         public ActionResult Configure(ConfigurationModel model)
         {
-            //load settings for a chosen store scope
             var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
-            var nivoSliderSettings = _settingService.LoadSetting<TypeProductsSettings>(storeScope);
-            nivoSliderSettings.Picture1Id = model.Picture1Id;
-            nivoSliderSettings.Text1 = model.Text1;
-            nivoSliderSettings.Link1 = model.Link1;
-            nivoSliderSettings.Picture2Id = model.Picture2Id;
-            nivoSliderSettings.Text2 = model.Text2;
-            nivoSliderSettings.Link2 = model.Link2;
-            nivoSliderSettings.Picture3Id = model.Picture3Id;
-            nivoSliderSettings.Text3 = model.Text3;
-            nivoSliderSettings.Link3 = model.Link3;
-            nivoSliderSettings.Picture4Id = model.Picture4Id;
-            nivoSliderSettings.Text4 = model.Text4;
-            nivoSliderSettings.Link4 = model.Link4;
-            nivoSliderSettings.Picture5Id = model.Picture5Id;
-            nivoSliderSettings.Text5 = model.Text5;
-            nivoSliderSettings.Link5 = model.Link5;
+            //load settings for a chosen store scope
+            var settings = GetTypeProductsSettings();
+            model.NumberOfBestsellersOnHomepage = settings.NumberOfBestsellersOnHomepage;
+            model.NumberOfHomePageProductOnHomepage = settings.NumberOfHomePageProductOnHomepage;
+            model.NumberOfNewProductOnHomepage = settings.NumberOfNewProductOnHomepage;
 
-            /* We do not clear cache after each setting update.
-             * This behavior can increase performance because cached settings will not be cleared 
-             * and loaded from database after each update */
-            if (model.Picture1Id_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Picture1Id, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Picture1Id, storeScope);
-            
-            if (model.Text1_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Text1, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Text1, storeScope);
-            
-            if (model.Link1_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Link1, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Link1, storeScope);
-            
-            if (model.Picture2Id_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Picture2Id, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Picture2Id, storeScope);
-            
-            if (model.Text2_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Text2, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Text2, storeScope);
-            
-            if (model.Link2_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Link2, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Link2, storeScope);
-            
-            if (model.Picture3Id_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Picture3Id, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Picture3Id, storeScope);
-            
-            if (model.Text3_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Text3, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Text3, storeScope);
-            
-            if (model.Link3_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Link3, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Link3, storeScope);
-            
-            if (model.Picture4Id_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Picture4Id, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Picture4Id, storeScope);
-            
-            if (model.Text4_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Text4, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Text4, storeScope);
 
-            if (model.Link4_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Link4, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Link4, storeScope);
+            _settingService.SaveSetting(settings, x => x.NumberOfHomePageProductOnHomepage, storeScope, true);
+            _settingService.SaveSetting(settings, x => x.NumberOfHomePageProductOnHomepage, storeScope, true);
+            _settingService.SaveSetting(settings, x => x.NumberOfHomePageProductOnHomepage, storeScope, true);
 
-            if (model.Picture5Id_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Picture5Id, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Picture5Id, storeScope);
-
-            if (model.Text5_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Text5, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Text5, storeScope);
-
-            if (model.Link5_OverrideForStore || storeScope == 0)
-                _settingService.SaveSetting(nivoSliderSettings, x => x.Link5, storeScope, false);
-            else if (storeScope > 0)
-                _settingService.DeleteSetting(nivoSliderSettings, x => x.Link5, storeScope);
-            
             //now clear settings cache
             _settingService.ClearCache();
 
@@ -210,37 +162,115 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
         [ChildActionOnly]
         public ActionResult PublicInfo(string widgetZone, object additionalData = null)
         {
-            var nivoSliderSettings = _settingService.LoadSetting<TypeProductsSettings>(_storeContext.CurrentStore.Id);
-
-            var model = new PublicInfoModel();
-            model.Picture1Url = GetPictureUrl(nivoSliderSettings.Picture1Id);
-            model.Text1 = nivoSliderSettings.Text1;
-            model.Link1 = nivoSliderSettings.Link1;
-
-            model.Picture2Url = GetPictureUrl(nivoSliderSettings.Picture2Id);
-            model.Text2 = nivoSliderSettings.Text2;
-            model.Link2 = nivoSliderSettings.Link2;
-
-            model.Picture3Url = GetPictureUrl(nivoSliderSettings.Picture3Id);
-            model.Text3 = nivoSliderSettings.Text3;
-            model.Link3 = nivoSliderSettings.Link3;
-
-            model.Picture4Url = GetPictureUrl(nivoSliderSettings.Picture4Id);
-            model.Text4 = nivoSliderSettings.Text4;
-            model.Link4 = nivoSliderSettings.Link4;
-
-            model.Picture5Url = GetPictureUrl(nivoSliderSettings.Picture5Id);
-            model.Text5 = nivoSliderSettings.Text5;
-            model.Link5 = nivoSliderSettings.Link5;
-
-            if (string.IsNullOrEmpty(model.Picture1Url) && string.IsNullOrEmpty(model.Picture2Url) &&
-                string.IsNullOrEmpty(model.Picture3Url) && string.IsNullOrEmpty(model.Picture4Url) &&
-                string.IsNullOrEmpty(model.Picture5Url))
-                //no pictures uploaded
-                return Content("");
+            HomePageProductInitModel model = new HomePageProductInitModel();
+            var settings = GetTypeProductsSettings();
 
 
-            return View("~/Plugins/Widgets.TypeProducts/Views/WidgetsNivoSlider/PublicInfo.cshtml", model);
+            var productsHomePage = _cacheManager.Get(string.Format(ModelCacheEventConsumer.HomePageProduct, 0, _storeContext.CurrentStore.Id),
+               () =>
+                   _typePluginProductService.GetHomePageProductsDisplayedOnHomePage(0, settings.NumberOfHomePageProductOnHomepage));
+            model.HomePageProductPageCount= productsHomePage.TotalPages;
+            //ACL and store mapping
+            var productList = productsHomePage.Where(p => _aclService.Authorize(p) && _storeMappingService.Authorize(p)).ToList();
+            //availability dates
+            productList = productList.Where(p => p.IsAvailable()).ToList();
+
+            model.HomePageProduct = PrepareProductOverviewModels(productList, true, true, null).ToList();
+
+
+            var report = _cacheManager.Get(string.Format(ModelCacheEventConsumer.BestSellerProduct, 0, _storeContext.CurrentStore.Id),
+               () =>
+                   _orderReportService.BestSellersReport(storeId: _storeContext.CurrentStore.Id,
+                   pageSize: settings.NumberOfBestsellersOnHomepage,
+                   pageIndex: 0));
+
+            model.BestSellerProductPageCount = report.TotalPages;
+            //load products
+            var productsBestSeller = _productService.GetProductsByIds(report.Select(x => x.ProductId).ToArray());
+            //ACL and store mapping
+            productsBestSeller = productsBestSeller.Where(p => _aclService.Authorize(p) && _storeMappingService.Authorize(p)).ToList();
+            //availability dates
+            productsBestSeller = productsBestSeller.Where(p => p.IsAvailable()).ToList();
+
+            model.BestSellerProduct = PrepareProductOverviewModels(productsBestSeller, true, true, null).ToList();
+
+            var productsNewProduct = _cacheManager.Get(string.Format(ModelCacheEventConsumer.NewProduct, 0, _storeContext.CurrentStore.Id),
+               () =>
+                   _typePluginProductService.GetNewProductsDisplayedOnHomePage(_productService, _storeContext, 0, settings.NumberOfHomePageProductOnHomepage));
+            model.NewProductProductPageCount = productsNewProduct.TotalPages;
+            model.NewProduct = PrepareProductOverviewModels(productsNewProduct, true, true, null).ToList();
+
+            return View("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/PublicInfo.cshtml",model);
         }
+
+
+        [HttpPost]
+        public ActionResult HomePageProductsPaging(int pageIndex)
+        {
+            var settings = GetTypeProductsSettings();
+            var products = _cacheManager.Get(string.Format(ModelCacheEventConsumer.HomePageProduct, pageIndex, _storeContext.CurrentStore.Id),
+                () =>
+                    _typePluginProductService.GetHomePageProductsDisplayedOnHomePage(pageIndex, settings.NumberOfHomePageProductOnHomepage));
+            var totalPage = products.TotalPages;
+            //ACL and store mapping
+            var productList = products.Where(p => _aclService.Authorize(p) && _storeMappingService.Authorize(p)).ToList();
+            //availability dates
+            productList = productList.Where(p => p.IsAvailable()).ToList();
+
+            var model = PrepareProductOverviewModels(productList, true, true, null).ToList();
+            return Json(new
+            {
+                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/Products.cshtml", model) : "",
+                pageCount = totalPage
+            });
+        }
+
+        [HttpPost]
+        public ActionResult HomepageBestSellersPaging(int pageIndex)
+        {
+
+            var settings = GetTypeProductsSettings();
+            //load and cache report
+            var report = _cacheManager.Get(string.Format(ModelCacheEventConsumer.BestSellerProduct, pageIndex, _storeContext.CurrentStore.Id),
+                () =>
+                    _orderReportService.BestSellersReport(storeId: _storeContext.CurrentStore.Id,
+                    pageSize: settings.NumberOfBestsellersOnHomepage,
+                    pageIndex: pageIndex));
+
+            var totalPage = report.TotalPages;
+            //load products
+            var products = _productService.GetProductsByIds(report.Select(x => x.ProductId).ToArray());
+            //ACL and store mapping
+            products = products.Where(p => _aclService.Authorize(p) && _storeMappingService.Authorize(p)).ToList();
+            //availability dates
+            products = products.Where(p => p.IsAvailable()).ToList();
+
+            var model = PrepareProductOverviewModels(products, true, true, null).ToList();
+            return Json(new
+            {
+                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/Products.cshtml", model) : "",
+                pageCount = totalPage
+            });
+        }
+
+        [HttpPost]
+        public ActionResult NewProductsOnHomePagePaging(int pageIndex)
+        {
+
+            var settings = GetTypeProductsSettings();
+            //load and cache 
+            var products = _cacheManager.Get(string.Format(ModelCacheEventConsumer.NewProduct, pageIndex, _storeContext.CurrentStore.Id),
+                () =>
+                    _typePluginProductService.GetNewProductsDisplayedOnHomePage(_productService, _storeContext, pageIndex, settings.NumberOfHomePageProductOnHomepage));
+            var totalPage = products.TotalPages;
+            var model = PrepareProductOverviewModels(products, true, true, null).ToList();
+            return Json(new
+            {
+                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/Products.cshtml", model) : "",
+                pageCount = totalPage
+            });
+        }
+
+
     }
 }
