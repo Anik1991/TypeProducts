@@ -89,7 +89,7 @@
     <Compile Include="Extension\ControllerExtensions.cs" />
     <Compile Include="Infrastructure\Cache\ModelCacheEventConsumer.cs" />
     <Compile Include="Infrastructure\DependencyRegistrar.cs" />
-    <Compile Include="Model\HomePageProductInitModel.cs" />
+    <Compile Include="Models\HomePageProductInitModel.cs" />
     <Compile Include="Service\ITypePluginProductService.cs" />
     <Compile Include="Service\TypePluginProductService.cs" />
     <Compile Include="TypeProductsPlugin.cs" />

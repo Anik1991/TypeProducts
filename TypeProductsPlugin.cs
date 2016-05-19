@@ -82,7 +82,10 @@ namespace Nop.Plugin.Widgets.TypeProducts
             {
                 NumberOfBestsellersOnHomepage = 4,
                 NumberOfHomePageProductOnHomepage = 4,
-                NumberOfNewProductOnHomepage = 4
+                NumberOfNewProductOnHomepage = 4,
+                ShowBestSellerProduct=true,
+                ShowHomePageProduct=true,
+                ShowNewProduct=true
             };
             _settingService.SaveSetting(settings);
 

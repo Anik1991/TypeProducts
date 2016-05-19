@@ -8,7 +8,7 @@ using Nop.Core.Domain.Media;
 using Nop.Plugin.Widgets.TypeProducts;
 using Nop.Plugin.Widgets.TypeProducts.Extension;
 using Nop.Plugin.Widgets.TypeProducts.Infrastructure.Cache;
-using Nop.Plugin.Widgets.TypeProducts.Model;
+using Nop.Plugin.Widgets.TypeProducts.Models;
 using Nop.Plugin.Widgets.TypeProducts.Models;
 using Nop.Plugin.Widgets.TypeProducts.Service;
 using Nop.Services.Catalog;
@@ -132,6 +132,10 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
             model.NumberOfBestsellersOnHomepage = settings.NumberOfBestsellersOnHomepage;
             model.NumberOfHomePageProductOnHomepage = settings.NumberOfHomePageProductOnHomepage;
             model.NumberOfNewProductOnHomepage = settings.NumberOfNewProductOnHomepage;
+            model.ShowNewProduct = settings.ShowNewProduct;
+            model.ShowHomePageProduct = settings.ShowHomePageProduct;
+            model.ShowBestSellerProduct = settings.ShowBestSellerProduct;
+            model.cacheTime = settings.cacheTime;
             return View("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/Configure.cshtml", model);
         }
 
@@ -146,11 +150,17 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
             model.NumberOfBestsellersOnHomepage = settings.NumberOfBestsellersOnHomepage;
             model.NumberOfHomePageProductOnHomepage = settings.NumberOfHomePageProductOnHomepage;
             model.NumberOfNewProductOnHomepage = settings.NumberOfNewProductOnHomepage;
+            model.ShowNewProduct = settings.ShowNewProduct;
+            model.ShowHomePageProduct = settings.ShowHomePageProduct;
+            model.ShowBestSellerProduct = settings.ShowBestSellerProduct;
+            model.cacheTime = settings.cacheTime;
 
-
             _settingService.SaveSetting(settings, x => x.NumberOfHomePageProductOnHomepage, storeScope, true);
-            _settingService.SaveSetting(settings, x => x.NumberOfHomePageProductOnHomepage, storeScope, true);
-            _settingService.SaveSetting(settings, x => x.NumberOfHomePageProductOnHomepage, storeScope, true);
+            _settingService.SaveSetting(settings, x => x.NumberOfBestsellersOnHomepage, storeScope, true);
+            _settingService.SaveSetting(settings, x => x.NumberOfNewProductOnHomepage, storeScope, true);
+            _settingService.SaveSetting(settings, x => x.ShowBestSellerProduct, storeScope, true);
+            _settingService.SaveSetting(settings, x => x.ShowHomePageProduct, storeScope, true);
+            _settingService.SaveSetting(settings, x => x.ShowNewProduct, storeScope, true);
 
             //now clear settings cache
             _settingService.ClearCache();

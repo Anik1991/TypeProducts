@@ -7,7 +7,7 @@ using Nop.Services.Events;
 namespace Nop.Plugin.Widgets.TypeProducts.Infrastructure.Cache
 {
     /// <summary>
-    /// Model cache event consumer (used for caching of presentation layer models)
+    /// Models cache event consumer (used for caching of presentation layer models)
     /// </summary>
     public partial class ModelCacheEventConsumer: 
         IConsumer<EntityInserted<Setting>>,

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Nop.Web.Models.Catalog;
 
-namespace Nop.Plugin.Widgets.TypeProducts.Model
+namespace Nop.Plugin.Widgets.TypeProducts.Models
 {
     public class HomePageProductInitModel
     {
