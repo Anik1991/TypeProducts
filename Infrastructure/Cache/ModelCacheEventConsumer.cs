@@ -18,10 +18,13 @@ namespace Nop.Plugin.Widgets.TypeProducts.Infrastructure.Cache
         /// Key for caching
         /// </summary>
         /// <remarks>
-        /// {0} : picture id
+        /// {0} :paging id
+        /// {1}: store id
         /// </remarks>
-        public const string PICTURE_URL_MODEL_KEY = "Nop.plugins.widgets.nivosrlider.pictureurl-{0}";
-        public const string PICTURE_URL_PATTERN_KEY = "Nop.plugins.widgets.nivosrlider";
+        public const string Pattern = "Nop.plugins.widgets.typeProducts";
+        public const string HomePageProduct = "Nop.plugins.widgets.typeProducts.homepage-{0}-{1}";
+        public const string BestSellerProduct = "Nop.plugins.widgets.typeProducts.bestseller-{0}-{1}";
+        public const string NewProduct = "Nop.plugins.widgets.typeProducts.newproduct-{0}-{1}";
 
         private readonly ICacheManager _cacheManager;
 
@@ -33,15 +36,15 @@ namespace Nop.Plugin.Widgets.TypeProducts.Infrastructure.Cache
 
         public void HandleEvent(EntityInserted<Setting> eventMessage)
         {
-            _cacheManager.RemoveByPattern(PICTURE_URL_PATTERN_KEY);
+            _cacheManager.RemoveByPattern(Pattern);
         }
         public void HandleEvent(EntityUpdated<Setting> eventMessage)
         {
-            _cacheManager.RemoveByPattern(PICTURE_URL_PATTERN_KEY);
+            _cacheManager.RemoveByPattern(Pattern);
         }
         public void HandleEvent(EntityDeleted<Setting> eventMessage)
         {
-            _cacheManager.RemoveByPattern(PICTURE_URL_PATTERN_KEY);
+            _cacheManager.RemoveByPattern(Pattern);
         }
     }
 }
