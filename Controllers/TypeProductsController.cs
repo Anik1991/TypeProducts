@@ -6,7 +6,7 @@ using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Media;
 using Nop.Plugin.Widgets.TypeProducts;
-using Nop.Plugin.Widgets.TypeProducts.Extension;
+using Nop.Web.Extensions;
 using Nop.Plugin.Widgets.TypeProducts.Infrastructure.Cache;
 using Nop.Plugin.Widgets.TypeProducts.Models;
 using Nop.Plugin.Widgets.TypeProducts.Models;
@@ -122,6 +122,7 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
             return _settingService.LoadSetting<TypeProductsSettings>(storeScope);
         }
         #endregion
+
         [AdminAuthorize]
         [ChildActionOnly]
         public ActionResult Configure()
