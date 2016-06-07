@@ -211,7 +211,7 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
             {
                 var productsNewProduct = _cacheManager.Get(string.Format(ModelCacheEventConsumer.NewProduct, 0, _storeContext.CurrentStore.Id), settings.CacheTime,
                () =>
-                   _typePluginProductService.GetNewProductsDisplayedOnHomePage(_productService, _storeContext, 0, settings.NumberOfNewProductOnHomepage));
+                   _typePluginProductService.GetNewProductsDisplayedOnHomePage(_productService, _storeContext, 0, settings.NumberOfHomePageProductOnHomepage));
                 model.NewProductProductPageCount = productsNewProduct.TotalPages;
                 model.NewProduct = PrepareProductOverviewModels(productsNewProduct, true, true, null).ToList();
             }
@@ -237,7 +237,7 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
             var model = PrepareProductOverviewModels(productList, true, true, null).ToList();
             return Json(new
             {
-                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/ProductsHome.cshtml", model) : "",
+                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/Products.cshtml", model) : "",
                 pageCount = totalPage
             });
         }
@@ -265,7 +265,7 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
             var model = PrepareProductOverviewModels(products, true, true, null).ToList();
             return Json(new
             {
-                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/ProductsBestSeller.cshtml", model) : "",
+                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/Products.cshtml", model) : "",
                 pageCount = totalPage
             });
         }
@@ -278,12 +278,12 @@ namespace Nop.Plugin.Widgets.TypeProducts.Controllers
             //load and cache 
             var products = _cacheManager.Get(string.Format(ModelCacheEventConsumer.NewProduct, pageIndex, _storeContext.CurrentStore.Id), settings.CacheTime,
                 () =>
-                    _typePluginProductService.GetNewProductsDisplayedOnHomePage(_productService, _storeContext, pageIndex, settings.NumberOfNewProductOnHomepage));
+                    _typePluginProductService.GetNewProductsDisplayedOnHomePage(_productService, _storeContext, pageIndex, settings.NumberOfHomePageProductOnHomepage));
             var totalPage = products.TotalPages;
             var model = PrepareProductOverviewModels(products, true, true, null).ToList();
             return Json(new
             {
-                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/ProductsNew.cshtml", model) : "",
+                html = products.Count != 0 ? this.RenderPartialViewToString("~/Plugins/Widgets.TypeProducts/Views/TypeProducts/Products.cshtml", model) : "",
                 pageCount = totalPage
             });
         }
