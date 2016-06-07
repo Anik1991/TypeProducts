@@ -13,7 +13,7 @@ $(document).ready(function () {
         }
     });
 
-    HomePagePaging.defineDiv(HomePagePaging.productTypeDiv.homePageProduct);
-    HomePagePaging.defineDiv(HomePagePaging.productTypeDiv.bestSeller);
-    HomePagePaging.defineDiv(HomePagePaging.productTypeDiv.newProduct);
+    // HomePagePaging.defineDiv(HomePagePaging.productTypeDiv.homePageProduct);
+    // HomePagePaging.defineDiv(HomePagePaging.productTypeDiv.bestSeller);
+    // HomePagePaging.defineDiv(HomePagePaging.productTypeDiv.newProduct);
 })
